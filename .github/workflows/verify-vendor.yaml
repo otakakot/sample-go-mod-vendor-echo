@@ -1,0 +1,23 @@
+name: Verify vendor
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+jobs:
+  verify-vendor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-go@v6
+        with:
+          go-version-file: go.mod
+      - name: Verify vendor
+        run: |
+          TMPDIR=$(mktemp -d)
+          cp -R . "${TMPDIR}"
+          go -C "${TMPDIR}" mod tidy
+          go -C "${TMPDIR}" mod vendor
+          go -C "${TMPDIR}" mod verify
+          diff -r -u -x ".git" . "${TMPDIR}"
+          rm -rf "${TMPDIR}"
